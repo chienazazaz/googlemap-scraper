@@ -33,14 +33,15 @@ const BusinessInfoLocator = {
 };
 class Scraper {
   location: string;
-  query: string;
+  name: string;
+    static getPlacesInfo: any;
 
-  constructor(location: string, query: string) {
-    this.query = query;
+  constructor(name: string,location: string) {
+    this.name = name;
     this.location = location;
   }
 
-  query: string = `${this.query} ${this.location}`;
+  query: string = `${name} ${location}`;
 
   parseSearchResult = async (
     locator: playwright.Locator,
@@ -124,6 +125,7 @@ class Scraper {
   getPlacesInfo = async (): Promise<Business[]> => {
     const browser = await playwright.chromium.launch({ headless: true });
     const page = await browser.newPage();
+    console.log(this.query);
     const url = `https://www.google.com/maps/search/${this.query.replace(
       " ",
       "+"
@@ -133,8 +135,11 @@ class Scraper {
     const listings = await page.locator("div[role*=article]");
     const data: Business[] = [];
     for (let i = 0; i < (await listings.all()).length; i++) {
+      if(i>0) {
+        console.log(data[i-1])
+      }
       const locator = listings.nth(i);
-      await parseSearchResult(locator, page).then((res) => data.push(res));
+      await this.parseSearchResult(locator, page).then((res) => data.push(res));
     }
     await browser.close();
     return data;
